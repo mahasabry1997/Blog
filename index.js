@@ -1,30 +1,36 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const routes = require ('./routes/index');
+const routes = require('./routes/index');
 
 const app = express();//creation for instance from express
+const uri = "mongodb+srv://mahaSabry:M123@cluster0.gexqg.mongodb.net/project?retryWrites=true&w=majority";
+mongoose.connect(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  useFindAndModify: false,
+})
+  .then(() => console.log("Database Connected Successfully"))
+  .catch((err) => console.log(err));
 
-mongoose.connect('mongodb://localhost:27017/project',{ useNewUrlParser: true},{ useUnifiedTopology: true });
+//mongoose.connect('mongodb://localhost:27017/project',{ useNewUrlParser: true},{ useUnifiedTopology: true });
 app.use(express.json());
 
-app.use('/',routes);
+app.use('/', routes);
 
-app.use('*',(req,res,next)=>{
- res.status(404).json({Err:"Not_Found"});
+app.use('*', (req, res, next) => {
+  res.status(404).json({ Err: "Not_Found" });
 });
 
-app.use((err,req,res,next)=>{//error handler midlewre (error in server)
+app.use((err, req, res, next) => {//error handler midlewre (error in server)
   console.error(err);
-  if(err instanceof mongoose.Error.ValidationError)
-  {
+  if (err instanceof mongoose.Error.ValidationError) {
     res.status(422).json(err.errors);
   }
-  if(err.code === 11000)//error from data base
+  if (err.code === 11000)//error from data base
   {
-    res.status(422).json({statusCode:"Validation Error" , property : err.keyValue})
+    res.status(422).json({ statusCode: "Validation Error", property: err.keyValue })
   }
-  if (err.message === 'UN_AUTHENTICATED') 
-  {
+  if (err.message === 'UN_AUTHENTICATED') {
     res.status(401).json({ statusCode: 'UN_AUTHENTICATED' });
   }
   res.status(503).end();//server error
